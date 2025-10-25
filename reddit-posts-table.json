@@ -1,0 +1,33 @@
+{
+  "TableName": "reddit-posts",
+  "AttributeDefinitions": [
+    {"AttributeName": "id", "AttributeType": "S"},
+    {"AttributeName": "subreddit", "AttributeType": "S"},
+    {"AttributeName": "created_utc", "AttributeType": "N"},
+    {"AttributeName": "author", "AttributeType": "S"}
+  ],
+  "KeySchema": [
+    {"AttributeName": "id", "KeyType": "HASH"}
+  ],
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexName": "GSI1",
+      "KeySchema": [
+        {"AttributeName": "subreddit", "KeyType": "HASH"},
+        {"AttributeName": "created_utc", "KeyType": "RANGE"}
+      ],
+      "Projection": {"ProjectionType": "ALL"},
+      "ProvisionedThroughput": {"ReadCapacityUnits": 5, "WriteCapacityUnits": 5}
+    },
+    {
+      "IndexName": "GSI2",
+      "KeySchema": [
+        {"AttributeName": "author", "KeyType": "HASH"},
+        {"AttributeName": "created_utc", "KeyType": "RANGE"}
+      ],
+      "Projection": {"ProjectionType": "ALL"},
+      "ProvisionedThroughput": {"ReadCapacityUnits": 5, "WriteCapacityUnits": 5}
+    }
+  ],
+  "BillingMode": "PAY_PER_REQUEST"
+}

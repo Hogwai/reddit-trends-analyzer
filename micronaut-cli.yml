@@ -1,0 +1,6 @@
+applicationType: default
+defaultPackage: com.hogwai
+testFramework: junit
+sourceLanguage: java
+buildTool: gradle_kotlin
+features: [app-name, aws-v2-sdk, dynamodb, gradle, http-client, java, java-application, junit, logback, micronaut-aot, micronaut-build, micronaut-http-validation, netty-server, properties, readme, rxjava3, rxjava3-http-client, serialization-jackson, shade, static-resources, validation]

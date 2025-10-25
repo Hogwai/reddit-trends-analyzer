@@ -1,0 +1,38 @@
+package com.hogwai.config;
+
+import io.micronaut.context.annotation.Factory;
+import io.micronaut.context.annotation.Value;
+import jakarta.inject.Singleton;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+
+import java.net.URI;
+
+@Factory
+public class DynamoDbFactory {
+
+    @Singleton
+    DynamoDbEnhancedClient dynamoDbEnhancedClient(
+            @Value("${aws.region:eu-west-3}") String region,
+            @Value("${aws.dynamodb.endpoint-override:}") String endpoint,
+            @Value("${aws.credentials.static.access-key-id:}") String accessKey,
+            @Value("${aws.credentials.static.secret-access-key:}") String secretKey
+    ) {
+        DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
+                                                      .region(Region.of(region))
+                                                      .endpointOverride(endpoint != null && !endpoint.isBlank() ? URI.create(endpoint) : null)
+                                                      .credentialsProvider(
+                                                              StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey))
+                                                      )
+                                                      .build();
+
+        return DynamoDbEnhancedClient.builder()
+                                     .dynamoDbClient(dynamoDbClient)
+                                     .build();
+    }
+}
+
+
