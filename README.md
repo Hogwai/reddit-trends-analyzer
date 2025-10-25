@@ -38,8 +38,9 @@ AWS Access Key ID : DUMMYKEY
 AWS Secret Access Key : DUMMYSECRET
 Default region name: eu-west-3
 Default output format: json
+```
 
-3. Run the application:
+### Run the application:
 
 ```bash
 ./gradlew run
