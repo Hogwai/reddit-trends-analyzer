@@ -25,19 +25,31 @@ Built with Micronaut and a local DynamoDB database.
 docker-compose up -d
 ```
 
-### Configuring a local profile
+### Configure a local profile
 
 ```shell
 aws configure --profile local
 ```
 
-### Creating credentials
+### Create credentials
 
 ```shell
 AWS Access Key ID : DUMMYKEY
 AWS Secret Access Key : DUMMYSECRET
 Default region name: eu-west-3
 Default output format: json
+```
+
+### Create the table
+```shell
+aws dynamodb create-table \
+    --table-name reddit-posts \
+    --attribute-definitions AttributeName=id,AttributeType=S \
+    --key-schema AttributeName=id,KeyType=HASH \
+    --billing-mode PAY_PER_REQUEST \
+    --endpoint-url http://localhost:8000 \
+	--region eu-west-3 \
+	--profile local
 ```
 
 ### Run the application:
