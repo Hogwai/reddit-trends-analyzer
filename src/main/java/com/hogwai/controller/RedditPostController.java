@@ -3,6 +3,7 @@ package com.hogwai.controller;
 import com.hogwai.model.RedditPost;
 import com.hogwai.service.RedditPostService;
 import io.micronaut.http.annotation.Controller;
+import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.annotation.QueryValue;
 
@@ -32,5 +33,10 @@ public class RedditPostController {
                          );
 
         return completableFuture;
+    }
+
+    @Get("/posts")
+    public List<RedditPost> getPosts() {
+        return redditPostService.getAllPosts();
     }
 }

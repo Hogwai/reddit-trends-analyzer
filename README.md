@@ -52,6 +52,12 @@ aws dynamodb create-table \
 	--profile local
 ```
 
+Or run the shell:
+
+```shell
+create-table.sh
+```
+
 ### Run the application:
 
 ```bash

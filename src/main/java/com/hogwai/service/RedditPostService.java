@@ -66,6 +66,15 @@ public class RedditPostService {
     }
 
     /**
+     * Get all posts
+     *
+     * @return posts
+     */
+    public List<RedditPost> getAllPosts() {
+        return redditPostRepository.getAllPosts();
+    }
+
+    /**
      * Map raw reddit post data to {@link RedditPost}
      *
      * @param redditPostData raw data

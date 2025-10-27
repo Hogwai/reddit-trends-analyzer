@@ -15,7 +15,10 @@ import software.amazon.awssdk.enhanced.dynamodb.model.WriteBatch;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Singleton
 public class RedditPostRepository {
@@ -41,6 +44,15 @@ public class RedditPostRepository {
     public RedditPostRepository(DynamoDbEnhancedClient dynamoDbEnhancedClient) {
         this.dynamoDbEnhancedClient = dynamoDbEnhancedClient;
         this.postTable = dynamoDbEnhancedClient.table("reddit-posts", TableSchema.fromBean(RedditPost.class));
+    }
+
+    public List<RedditPost> getAllPosts() {
+        return postTable.scan()
+                        .items()
+                        .stream()
+                        .sorted(Comparator.comparingLong(RedditPost::getCreatedUtc)
+                                          .reversed())
+                        .toList();
     }
 
     public List<RedditPost> getPostsKeywordsBySubredditAndDate(String subreddit, Instant startDate, Instant endDate) {
@@ -123,7 +135,7 @@ public class RedditPostRepository {
                                                            Set<String> attributesToProject) {
         return ScanEnhancedRequest.builder()
                                   .filterExpression(expression)
-                                  .attributesToProject(new ArrayList<>(attributesToProject))
+                                  .attributesToProject(attributesToProject)
                                   .build();
     }
 

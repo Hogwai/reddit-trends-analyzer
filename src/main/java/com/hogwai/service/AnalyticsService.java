@@ -46,6 +46,7 @@ public class AnalyticsService {
                 redditPostRepository.getPostsFlairsBySubreddit(subreddit);
 
         Map<String, Long> flairFrequencies = posts.stream()
+                                                  .filter(Objects::nonNull)
                                                   .map(RedditPost::getLinkFlairText)
                                                   .filter(Objects::nonNull)
                                                   .collect(Collectors.groupingBy(
