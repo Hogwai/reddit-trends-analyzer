@@ -1,20 +1,14 @@
 package com.hogwai.service;
 
+import com.hogwai.model.Flair;
+import com.hogwai.model.Keyword;
 import com.hogwai.model.RedditPost;
+import com.hogwai.model.SummarizedPost;
 import com.hogwai.repository.RedditPostRepository;
-import io.micronaut.core.util.StringUtils;
 import jakarta.inject.Singleton;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -22,80 +16,125 @@ import java.util.stream.Collectors;
 @Singleton
 public class AnalyticsService {
 
-    public static final String REDDIT_POSTS = "reddit-posts";
     private static final Pattern COMMA_PATTERN = Pattern.compile(",");
-    private final DynamoDbTable<RedditPost> postTable;
-    private final DynamoDbEnhancedClient client;
     private final RedditPostRepository redditPostRepository;
 
-    public AnalyticsService(DynamoDbEnhancedClient client,
-                            RedditPostRepository redditPostRepository) {
-        this.client = client;
+    public AnalyticsService(RedditPostRepository redditPostRepository) {
         this.redditPostRepository = redditPostRepository;
-        this.postTable = this.client.table(REDDIT_POSTS, TableSchema.fromBean(RedditPost.class));
     }
 
 
-    public List<RedditPost> getTopPostsBySubreddit(String subreddit,
-                                                   Instant startDate,
-                                                   Instant endDate,
-                                                   int limit) {
+    /**
+     * Get the posts with the highest score
+     *
+     * @param subreddit subreddit
+     * @param startDate startDate
+     * @param endDate   endDate
+     * @param limit     limit
+     * @return top posts
+     */
+    public List<SummarizedPost> getTopPostsBySubreddit(String subreddit,
+                                                       Instant startDate,
+                                                       Instant endDate,
+                                                       int limit) {
         return redditPostRepository.getTopPostsBySubreddit(subreddit, startDate, endDate, limit);
     }
 
 
-    public Map<String, Long> getFlairDistribution(String subreddit) {
-        QueryConditional queryCondition = QueryConditional.keyEqualTo(
-                Key.builder()
-                   .partitionValue(subreddit)
-                   .build()
-        );
+    public List<Flair> getFlairDistribution(String subreddit) {
+        List<RedditPost> posts =
+                redditPostRepository.getPostsFlairsBySubreddit(subreddit);
 
-        return postTable.query(r -> r.queryConditional(queryCondition))
-                        .items()
-                        .stream()
-                        .filter(post -> !StringUtils.isEmpty(post.getLinkFlairText()))
-                        .collect(Collectors.groupingBy(RedditPost::getLinkFlairText, Collectors.counting()));
+        Map<String, Long> flairFrequencies = posts.stream()
+                                                  .map(RedditPost::getLinkFlairText)
+                                                  .filter(Objects::nonNull)
+                                                  .collect(Collectors.groupingBy(
+                                                          flair -> flair,
+                                                          Collectors.counting()
+                                                  ));
+
+        return flairFrequencies.entrySet()
+                               .stream()
+                               .map(entry -> new Flair(entry.getKey(), entry.getValue()))
+                               .sorted(Comparator.comparingLong(Flair::frequency)
+                                                 .reversed())
+                               .toList();
     }
 
-    public List<Map.Entry<String, Long>> getTopKeywords(String subreddit,
-                                                        Instant startDate,
-                                                        Instant endDate,
-                                                        int limit) {
+    /**
+     * Get keywords with the highest frequency
+     *
+     * @param subreddit subreddit
+     * @param startDate startDate
+     * @param endDate   endDate
+     * @param limit     limit
+     * @return top keyword
+     */
+    public List<Keyword> getTopKeywords(String subreddit,
+                                        Instant startDate,
+                                        Instant endDate,
+                                        int limit) {
         List<RedditPost> posts =
-                redditPostRepository.scanBySubredditAndDate(subreddit, startDate, endDate);
-        Map<String, Long> keywordFrequencies = new ConcurrentHashMap<>();
-        posts.forEach(post -> {
-            if (post.getKeywords() != null) {
-                post.getKeywords().forEach(keyword -> keywordFrequencies.merge(keyword, 1L, Long::sum));
-            }
-        });
-        return keywordFrequencies.entrySet().stream()
-                                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                redditPostRepository.getPostsKeywordsBySubredditAndDate(subreddit, startDate, endDate);
+
+        Map<String, Long> keywordFrequencies = posts.stream()
+                                                    .filter(post -> post.getKeywords() != null)
+                                                    .flatMap(post -> post.getKeywords()
+                                                                         .stream())
+                                                    .collect(Collectors.groupingBy(
+                                                            keyword -> keyword,
+                                                            Collectors.counting()
+                                                    ));
+
+        return keywordFrequencies.entrySet()
+                                 .stream()
+                                 .map(entry -> new Keyword(entry.getKey(), entry.getValue()))
+                                 .sorted(Comparator.comparingLong(Keyword::frequency)
+                                                   .reversed())
                                  .limit(limit)
                                  .toList();
     }
 
-    public Map<String, Long> compareTerms(String subreddit,
-                                          Instant startDate,
-                                          Instant endDate,
-                                          String terms) {
-        Set<String> termSet = COMMA_PATTERN.splitAsStream(terms)
-                                           .map(String::trim)
-                                           .map(String::toLowerCase)
-                                           .collect(Collectors.toSet());
+    /**
+     * Compare the frequency between terms in the posts of a subreddit
+     *
+     * @param subreddit      subreddit
+     * @param startDate      start date
+     * @param endDate        end date
+     * @param keywordsAsText keywords to compare
+     * @return terms with their frequency
+     */
+    public List<Keyword> compareKeywords(String subreddit,
+                                         Instant startDate,
+                                         Instant endDate,
+                                         String keywordsAsText) {
+        Set<String> splitTerms = COMMA_PATTERN.splitAsStream(keywordsAsText)
+                                              .map(String::trim)
+                                              .map(String::toLowerCase)
+                                              .collect(Collectors.toSet());
+        if (splitTerms.isEmpty()) {
+            throw new IllegalArgumentException("No terms provided");
+        }
+
         List<RedditPost> posts =
-                redditPostRepository.scanBySubredditAndDate(subreddit, startDate, endDate);
-        Map<String, Long> termCounts = termSet.stream().collect(Collectors.toMap(Function.identity(), k -> 0L));
-        posts.forEach(post -> {
-            if (post.getKeywords() != null) {
-                post.getKeywords().forEach(keyword -> {
-                    if (termCounts.containsKey(keyword)) {
-                        termCounts.put(keyword, termCounts.get(keyword) + 1);
-                    }
-                });
-            }
-        });
-        return termCounts;
+                redditPostRepository.getPostsKeywordsBySubredditAndDate(subreddit, startDate, endDate);
+
+        Map<String, Long> keywordCounts = splitTerms.stream()
+                                                    .collect(Collectors.toMap(
+                                                            Function.identity(),
+                                                            k -> posts.stream()
+                                                                      .filter(post -> post.getKeywords() != null)
+                                                                      .flatMap(post -> post.getKeywords()
+                                                                                           .stream())
+                                                                      .filter(keyword -> keyword.equals(k))
+                                                                      .count()
+                                                    ));
+
+        return keywordCounts.entrySet()
+                            .stream()
+                            .map(entry -> new Keyword(entry.getKey(), entry.getValue()))
+                            .sorted(Comparator.comparingLong(Keyword::frequency)
+                                              .reversed())
+                            .toList();
     }
 }

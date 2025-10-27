@@ -1,18 +1,16 @@
-package com.hogwai.service;
+package com.hogwai.util;
 
 import io.micronaut.core.util.StringUtils;
 import jakarta.inject.Singleton;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Singleton
-public class TextProcessingService {
-
-    private static final Logger LOG = LoggerFactory.getLogger(TextProcessingService.class);
+public class TextProcessingUtil {
 
     private static final Set<String> STOP_WORDS = Set.of(
             "a", "about", "above", "after", "again", "against", "all", "am", "an", "and",
@@ -33,10 +31,10 @@ public class TextProcessingService {
             "we", "we'd", "we'll", "we're", "we've", "were", "weren't", "what", "what's",
             "when", "when's", "where", "where's", "which", "while", "who", "who's", "whom",
             "why", "why's", "with", "won't", "would", "wouldn't", "you", "you'd", "you'll",
-            "you're", "you've", "your", "yours", "yourself", "yourselves"
+            "you're", "you've", "your", "yours", "yourself", "yourselves", "also", "just"
     );
 
-    private static final Pattern PUNCTUATION_PATTERN = Pattern.compile("[^a-zA-Z\\s]");
+    private static final Pattern PUNCTUATION_PATTERN = Pattern.compile("[^a-zA-Z\\s']");
     private static final Pattern SPLIT_PATTERN = Pattern.compile("\\s+");
 
     public Set<String> extractKeywords(String text) {
@@ -44,13 +42,10 @@ public class TextProcessingService {
             return Collections.emptySet();
         }
 
-        LOG.debug("Processing : {}", text.substring(0, Math.min(text.length(), 100)));
+        String sanitizedText = PUNCTUATION_PATTERN.matcher(text.toLowerCase())
+                                                  .replaceAll(" ");
 
-        String cleanedText = text.toLowerCase();
-
-        cleanedText = PUNCTUATION_PATTERN.matcher(cleanedText).replaceAll(" ");
-
-        return Arrays.stream(SPLIT_PATTERN.split(cleanedText))
+        return Arrays.stream(SPLIT_PATTERN.split(sanitizedText))
                      .filter(word -> word.length() > 2 && !STOP_WORDS.contains(word))
                      .collect(Collectors.toSet());
     }

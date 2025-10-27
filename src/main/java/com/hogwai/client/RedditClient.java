@@ -1,6 +1,6 @@
 package com.hogwai.client;
 
-import com.hogwai.model.record.RedditListing;
+import com.hogwai.model.raw.RedditListing;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Header;
 import io.micronaut.http.annotation.PathVariable;
@@ -14,11 +14,11 @@ public interface RedditClient {
     @Get("/r/{subreddit}.json")
     Publisher<RedditListing> fetchListing(
             @PathVariable String subreddit,
-            @QueryValue("t") String timeFilter,
+            @QueryValue("t") String temporality,
             @QueryValue("limit") int limit
     );
 
-    default Publisher<RedditListing> fetchPosts(String subreddit, String timeFilter, int limit) {
-        return fetchListing(subreddit, timeFilter, limit);
+    default Publisher<RedditListing> fetchPosts(String subreddit, String temporality, int limit) {
+        return fetchListing(subreddit, temporality, limit);
     }
 }

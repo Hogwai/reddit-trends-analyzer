@@ -1,4 +1,4 @@
-package com.hogwai.model.record;
+package com.hogwai.model.raw;
 
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;

@@ -66,10 +66,18 @@ Returns the most frequent keywords for a given subreddit.
 curl "http://localhost:8080/analytics/top-keywords?subreddit=socialmedia&days=30"
 ```
 
-- Compare Terms
+- Compare Keywords
 
-Compares the frequency of specific terms.
+Compares the frequency of specific keywords.
 
 ```bash
-curl "http://localhost:8080/analytics/compare?subreddit=socialmedia&terms=tiktok,instagram"
+curl "http://localhost:8080/analytics/compare-keywords?subreddit=socialmedia&terms=tiktok,instagram"
+```
+
+- Get top flairs
+
+Returns the most frequent flairs used for a given subreddit.
+
+```bash
+curl "http://localhost:8080/analytics/top-flairs?subreddit=socialmedia"
 ```

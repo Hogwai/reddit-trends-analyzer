@@ -29,6 +29,9 @@ public class RedditPost {
     private String linkFlairText;
     private Set<String> keywords;
 
+    /**
+     * Needed with @DynamoDbBean
+     */
     public RedditPost() { }
 
     public RedditPost(String id, String subreddit, Long createdUtc, String author,
