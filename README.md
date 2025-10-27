@@ -58,13 +58,14 @@ Or run the shell:
 create-table.sh
 ```
 
+### DynamoDB admin
+The admin GUI will be available here: [dynamodb-admin](http://localhost:8001)
+
 ### Run the application:
 
 ```bash
 ./gradlew run
 ```
-
-The app will be available at `http://localhost:8080`.
 
 ## API Endpoints
 
@@ -73,7 +74,7 @@ The app will be available at `http://localhost:8080`.
 Fetches and saves posts from Reddit.
 
 ```bash
-curl -X POST "http://localhost:8080/reddit/fetch?subreddit=socialmedia&limit=50"
+curl -X POST "http://localhost:8082/reddit/fetch?subreddit=socialmedia&limit=50"
 ```
 
 - Get Top Keywords
@@ -81,7 +82,7 @@ curl -X POST "http://localhost:8080/reddit/fetch?subreddit=socialmedia&limit=50"
 Returns the most frequent keywords for a given subreddit.
 
 ```bash
-curl "http://localhost:8080/analytics/top-keywords?subreddit=socialmedia&days=30"
+curl "http://localhost:8082/analytics/top-keywords?subreddit=socialmedia&days=30"
 ```
 
 - Compare Keywords
@@ -89,7 +90,7 @@ curl "http://localhost:8080/analytics/top-keywords?subreddit=socialmedia&days=30
 Compares the frequency of specific keywords.
 
 ```bash
-curl "http://localhost:8080/analytics/compare-keywords?subreddit=socialmedia&terms=tiktok,instagram"
+curl "http://localhost:8082/analytics/compare-keywords?subreddit=socialmedia&terms=tiktok,instagram"
 ```
 
 - Get top flairs
@@ -97,5 +98,5 @@ curl "http://localhost:8080/analytics/compare-keywords?subreddit=socialmedia&ter
 Returns the most frequent flairs used for a given subreddit.
 
 ```bash
-curl "http://localhost:8080/analytics/top-flairs?subreddit=socialmedia"
+curl "http://localhost:8082/analytics/top-flairs?subreddit=socialmedia"
 ```
