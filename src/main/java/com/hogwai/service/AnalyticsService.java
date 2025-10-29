@@ -6,6 +6,8 @@ import com.hogwai.repository.RedditPostRepository;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.core.util.StringUtils;
 import jakarta.inject.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -19,9 +21,10 @@ import java.util.stream.Collectors;
 
 @Singleton
 public class AnalyticsService {
+    private static final Logger LOG = LoggerFactory.getLogger(AnalyticsService.class);
 
     private static final Pattern COMMA_PATTERN = Pattern.compile(",");
-    public static final DateTimeFormatter YYYY_MM_DD_HH_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH");
+    public static final DateTimeFormatter YYYY_MM_DD_HH_MM_SS_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     public static final DateTimeFormatter YYYY_MM_DD_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     public static final DateTimeFormatter YYYY_MM_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM");
     public static final DateTimeFormatter YYYY_PATTERN = DateTimeFormatter.ofPattern("yyyy");
@@ -47,7 +50,9 @@ public class AnalyticsService {
                                                        Instant startDate,
                                                        Instant endDate,
                                                        int limit) {
-        return redditPostRepository.getTopPostsBySubreddit(subreddit, startDate, endDate, limit);
+        List<SummarizedPost> topPostsBySubreddit = redditPostRepository.getTopPostsBySubreddit(subreddit, startDate, endDate, limit);
+        LOG.info("{} summarized posts found", topPostsBySubreddit.size());
+        return topPostsBySubreddit;
     }
 
 
@@ -198,7 +203,7 @@ public class AnalyticsService {
                                             LocalDateTime dt = LocalDateTime.ofInstant(created, UTC);
 
                                             return switch ( timeframe ) {
-                                                case HOUR -> dt.format(YYYY_MM_DD_HH_PATTERN);
+                                                case HOUR -> dt.format(YYYY_MM_DD_HH_MM_SS_PATTERN);
                                                 case DAY -> dt.format(YYYY_MM_DD_PATTERN);
                                                 case WEEK -> {
                                                     int year = dt.toLocalDate()
@@ -217,7 +222,8 @@ public class AnalyticsService {
         List<KeywordTrendPoint> points = counts.entrySet()
                                                .stream()
                                                .map(e -> new KeywordTrendPoint(e.getValue(), e.getKey()))
-                                               .sorted(Comparator.comparing(KeywordTrendPoint::label))
+                                               .sorted(Comparator.comparing(KeywordTrendPoint::label)
+                                                                 .reversed())
                                                .toList();
 
         return new KeywordTrend(normalizedKeyword, timeframe.getLabel(), points);

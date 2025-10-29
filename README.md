@@ -102,7 +102,7 @@ curl "http://localhost:8082/analytics/top-flairs?subreddit=socialmedia"
 ```
 - Get the frequency evolution of a keyword over time
 
-Returns the most frequent flairs used for a given subreddit.
+Get the frequency evolution of a keyword over time (by hour, day, week, month)
 
 ```bash
 curl "http://localhost:8082/analytics/keyword-trends?subreddit=socialmedia&keyword=tiktok"

@@ -6,11 +6,13 @@ import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.annotation.QueryValue;
+import io.micronaut.scheduling.TaskExecutors;
+import io.micronaut.scheduling.annotation.ExecuteOn;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Controller("/reddit")
+@ExecuteOn(TaskExecutors.BLOCKING)
 public class RedditPostController {
     private final RedditPostService redditPostService;
 
@@ -19,20 +21,11 @@ public class RedditPostController {
     }
 
     @Post("/fetch")
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public CompletableFuture<List<RedditPost>> fetchPosts(
+    public List<RedditPost> fetchPosts(
             @QueryValue String subreddit,
             @QueryValue(defaultValue = "month") String timeFilter,
             @QueryValue(defaultValue = "100") int limit) {
-        CompletableFuture<List<RedditPost>> completableFuture = new CompletableFuture<>();
-
-        redditPostService.fetchAndSavePosts(subreddit, timeFilter, limit)
-                         .subscribe(
-                                 completableFuture::complete,
-                                 completableFuture::completeExceptionally
-                         );
-
-        return completableFuture;
+        return redditPostService.fetchAndSavePosts(subreddit, timeFilter, limit);
     }
 
     @Get("/posts")

@@ -8,12 +8,15 @@ import com.hogwai.service.AnalyticsService;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.QueryValue;
+import io.micronaut.scheduling.TaskExecutors;
+import io.micronaut.scheduling.annotation.ExecuteOn;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Controller("/analytics")
+@ExecuteOn(TaskExecutors.BLOCKING)
 public class AnalyticsController {
 
     private final AnalyticsService analyticsService;

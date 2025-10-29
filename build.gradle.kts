@@ -17,8 +17,6 @@ dependencies {
     annotationProcessor("io.micronaut.validation:micronaut-validation-processor")
     implementation("io.micronaut:micronaut-http-client")
     implementation("io.micronaut.aws:micronaut-aws-sdk-v2")
-    implementation("io.micronaut.rxjava3:micronaut-rxjava3")
-    implementation("io.micronaut.rxjava3:micronaut-rxjava3-http-client")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
     implementation("io.micronaut.validation:micronaut-validation")
     implementation("jakarta.validation:jakarta.validation-api")

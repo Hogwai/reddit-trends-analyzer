@@ -6,19 +6,14 @@ import io.micronaut.http.annotation.Header;
 import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.http.annotation.QueryValue;
 import io.micronaut.http.client.annotation.Client;
-import org.reactivestreams.Publisher;
 
 @Client("https://www.reddit.com")
 @Header(name = "User-Agent", value = "TrendAnalyzer/1.0")
 public interface RedditClient {
     @Get("/r/{subreddit}.json")
-    Publisher<RedditListing> fetchListing(
+    RedditListing fetchListing(
             @PathVariable String subreddit,
             @QueryValue("t") String temporality,
             @QueryValue("limit") int limit
     );
-
-    default Publisher<RedditListing> fetchPosts(String subreddit, String temporality, int limit) {
-        return fetchListing(subreddit, temporality, limit);
-    }
 }
