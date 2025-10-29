@@ -1,13 +1,17 @@
 package com.hogwai.service;
 
-import com.hogwai.model.Flair;
-import com.hogwai.model.Keyword;
-import com.hogwai.model.RedditPost;
-import com.hogwai.model.SummarizedPost;
+import com.hogwai.enums.Timeframe;
+import com.hogwai.model.*;
 import com.hogwai.repository.RedditPostRepository;
+import io.micronaut.core.util.CollectionUtils;
+import io.micronaut.core.util.StringUtils;
 import jakarta.inject.Singleton;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -17,6 +21,12 @@ import java.util.stream.Collectors;
 public class AnalyticsService {
 
     private static final Pattern COMMA_PATTERN = Pattern.compile(",");
+    public static final DateTimeFormatter YYYY_MM_DD_HH_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH");
+    public static final DateTimeFormatter YYYY_MM_DD_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public static final DateTimeFormatter YYYY_MM_PATTERN = DateTimeFormatter.ofPattern("yyyy-MM");
+    public static final DateTimeFormatter YYYY_PATTERN = DateTimeFormatter.ofPattern("yyyy");
+    public static final ZoneOffset UTC = ZoneOffset.UTC;
+    public static final WeekFields ISO = WeekFields.ISO;
     private final RedditPostRepository redditPostRepository;
 
     public AnalyticsService(RedditPostRepository redditPostRepository) {
@@ -41,6 +51,12 @@ public class AnalyticsService {
     }
 
 
+    /**
+     * Get flairs with their distribution
+     *
+     * @param subreddit subreddit
+     * @return flairs with their distribution
+     */
     public List<Flair> getFlairDistribution(String subreddit) {
         List<RedditPost> posts =
                 redditPostRepository.getPostsFlairsBySubreddit(subreddit);
@@ -138,4 +154,74 @@ public class AnalyticsService {
                                               .reversed())
                             .toList();
     }
+
+    /**
+     * Give the weekly frequency evolution of a keyword
+     *
+     * @param subreddit subreddit
+     * @param startDate start date
+     * @param endDate   end date
+     * @param keyword   keyword
+     * @return the evolution of keyword occurrences over time
+     */
+    public KeywordTrend getKeywordTrends(String subreddit,
+                                         Instant startDate,
+                                         Instant endDate,
+                                         String keyword,
+                                         String timeframeStr) {
+
+        if (StringUtils.isEmpty(keyword)) {
+            throw new IllegalArgumentException("No keyword provided");
+        }
+        if (StringUtils.isEmpty(timeframeStr)) {
+            throw new IllegalArgumentException("No timeframe provided");
+        }
+
+        String normalizedKeyword = keyword.trim()
+                                          .toLowerCase();
+        Timeframe timeframe = Timeframe.valueOf(timeframeStr.toUpperCase());
+
+        List<RedditPost> posts = redditPostRepository
+                .getKeywordWithDataBySubredditAndDate(subreddit, startDate, endDate);
+
+        Map<String, Long> counts = posts.stream()
+                                        .filter(Objects::nonNull)
+                                        .filter(post -> CollectionUtils.isNotEmpty(post.getKeywords()))
+                                        .filter(post -> post.getKeywords()
+                                                            .stream()
+                                                            .filter(Objects::nonNull)
+                                                            .map(String::trim)
+                                                            .map(String::toLowerCase)
+                                                            .anyMatch(k -> k.equals(normalizedKeyword)))
+                                        .map(post -> {
+                                            Instant created = Instant.ofEpochSecond(post.getCreatedUtc());
+                                            LocalDateTime dt = LocalDateTime.ofInstant(created, UTC);
+
+                                            return switch ( timeframe ) {
+                                                case HOUR -> dt.format(YYYY_MM_DD_HH_PATTERN);
+                                                case DAY -> dt.format(YYYY_MM_DD_PATTERN);
+                                                case WEEK -> {
+                                                    int year = dt.toLocalDate()
+                                                                 .get(ISO.weekBasedYear());
+                                                    int week = dt.toLocalDate()
+                                                                 .get(ISO.weekOfWeekBasedYear());
+                                                    yield year + "-W" + week;
+                                                }
+                                                case MONTH -> dt.format(YYYY_MM_PATTERN);
+                                                case YEAR -> dt.format(YYYY_PATTERN);
+                                                case ALL -> "ALL";
+                                            };
+                                        })
+                                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+        List<KeywordTrendPoint> points = counts.entrySet()
+                                               .stream()
+                                               .map(e -> new KeywordTrendPoint(e.getValue(), e.getKey()))
+                                               .sorted(Comparator.comparing(KeywordTrendPoint::label))
+                                               .toList();
+
+        return new KeywordTrend(normalizedKeyword, timeframe.getLabel(), points);
+    }
+
+
 }

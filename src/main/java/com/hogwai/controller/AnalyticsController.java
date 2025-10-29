@@ -2,6 +2,7 @@ package com.hogwai.controller;
 
 import com.hogwai.model.Flair;
 import com.hogwai.model.Keyword;
+import com.hogwai.model.KeywordTrend;
 import com.hogwai.model.SummarizedPost;
 import com.hogwai.service.AnalyticsService;
 import io.micronaut.http.annotation.Controller;
@@ -51,6 +52,17 @@ public class AnalyticsController {
         Instant endDate = Instant.now();
         Instant startDate = endDate.minus(days, ChronoUnit.DAYS);
         return analyticsService.compareKeywords(subreddit, startDate, endDate, keywords);
+    }
+
+    @Get("/keyword-trends")
+    public KeywordTrend getKeywordWeeklyTrends(
+            @QueryValue String subreddit,
+            @QueryValue String keyword,
+            @QueryValue(defaultValue = "30") int days,
+            @QueryValue(defaultValue = "day") String timeframe) {
+        Instant endDate = Instant.now();
+        Instant startDate = endDate.minus(days, ChronoUnit.DAYS);
+        return analyticsService.getKeywordTrends(subreddit, startDate, endDate, keyword, timeframe);
     }
 
     @Get("/top-flairs")

@@ -107,7 +107,7 @@ public class RedditPostService {
         );
     }
 
-    @Scheduled(fixedRate = "1h")
+    @Scheduled(fixedRate = "1h", condition = "${posts-scheduling.enabled}")
     public void fetchLatestPosts() {
         LOG.info("Starting automated posts fetching...");
         fetchAndSavePosts(defaultSubreddit, Timeframe.DAY.getLabel(), 100);

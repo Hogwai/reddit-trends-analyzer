@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+aws dynamodb delete-table \
+    --table-name reddit-posts \
+    --endpoint-url http://localhost:8000 \
+	  --region eu-west-3 \
+	  --profile local
 
 aws dynamodb create-table \
     --table-name reddit-posts \

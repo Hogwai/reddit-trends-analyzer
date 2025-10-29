@@ -35,6 +35,7 @@ public class RedditPostRepository {
             "isOriginalContent",
             "linkFlairText");
     public static final Set<String> KEYWORDS_ATTRIBUTE = Set.of("keywords");
+    public static final Set<String> KEYWORDS_ATTRIBUTES = Set.of("keywords", "createdUtc");
     public static final Set<String> LINK_FLAIR_TEXT_ATTRIBUTE = Set.of("linkFlairText");
 
     private final DynamoDbTable<RedditPost> postTable;
@@ -59,6 +60,16 @@ public class RedditPostRepository {
         Map<String, AttributeValue> expressionValues = buildAttributeValues(subreddit, startDate, endDate);
         Expression expression = buildExpression(expressionValues);
         ScanEnhancedRequest request = buildRequestWithAttributes(expression, KEYWORDS_ATTRIBUTE);
+        return postTable.scan(request)
+                        .items()
+                        .stream()
+                        .toList();
+    }
+
+    public List<RedditPost> getKeywordWithDataBySubredditAndDate(String subreddit, Instant startDate, Instant endDate) {
+        Map<String, AttributeValue> expressionValues = buildAttributeValues(subreddit, startDate, endDate);
+        Expression expression = buildExpression(expressionValues);
+        ScanEnhancedRequest request = buildRequestWithAttributes(expression, KEYWORDS_ATTRIBUTES);
         return postTable.scan(request)
                         .items()
                         .stream()
