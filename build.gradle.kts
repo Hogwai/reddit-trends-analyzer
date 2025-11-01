@@ -10,6 +10,7 @@ group = "com.hogwai"
 repositories {
     mavenCentral()
 }
+val langchain4jVersion = "1.8.0"
 
 dependencies {
     annotationProcessor("io.micronaut:micronaut-http-validation")
@@ -22,6 +23,8 @@ dependencies {
     implementation("jakarta.validation:jakarta.validation-api")
     implementation("software.amazon.awssdk:dynamodb-enhanced")
     implementation("software.amazon.awssdk:dynamodb")
+    implementation("dev.langchain4j:langchain4j-ollama:${langchain4jVersion}")
+    implementation("dev.langchain4j:langchain4j:${langchain4jVersion}")
     runtimeOnly("ch.qos.logback:logback-classic")
 }
 

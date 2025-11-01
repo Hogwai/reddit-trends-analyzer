@@ -29,6 +29,8 @@ public class RedditPostRepository {
             "author",
             "title",
             "url",
+            "summary",
+            "sentiment",
             "score",
             "numComments",
             "upvoteRatio",
@@ -167,7 +169,8 @@ public class RedditPostRepository {
 
     private SummarizedPost mapToSummarizedPost(RedditPost rp) {
         return new SummarizedPost(rp.getId(), rp.getCreatedUtc(), rp.getAuthor(),
-                rp.getTitle(), rp.getUrl(), rp.getScore(), rp.getNumComments(),
-                rp.getUpvoteRatio(), rp.getIsOriginalContent(), rp.getLinkFlairText());
+                rp.getTitle(), rp.getSummary(), rp.getSentiment(), rp.getUrl(), rp.getScore(),
+                rp.getNumComments(), rp.getUpvoteRatio(), rp.getIsOriginalContent(),
+                rp.getLinkFlairText());
     }
 }

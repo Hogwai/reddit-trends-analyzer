@@ -1,6 +1,7 @@
 package com.hogwai.controller;
 
 import com.hogwai.model.RedditPost;
+import com.hogwai.model.SummarizedPost;
 import com.hogwai.service.RedditPostService;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
@@ -21,7 +22,7 @@ public class RedditPostController {
     }
 
     @Post("/fetch")
-    public List<RedditPost> fetchPosts(
+    public List<SummarizedPost> fetchPosts(
             @QueryValue String subreddit,
             @QueryValue(defaultValue = "month") String timeFilter,
             @QueryValue(defaultValue = "100") int limit) {

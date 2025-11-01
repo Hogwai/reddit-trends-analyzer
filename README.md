@@ -1,6 +1,7 @@
 # Reddit Analytics with Micronaut & DynamoDB
 
 A lightweight analytics tool to fetch posts from a subreddit, extract keywords, and identify trends.
+It enriches posts (sentiment/summary) with the help of gemma3 1b through ollama
 
 Built with Micronaut and a local DynamoDB database.
 
@@ -56,6 +57,10 @@ Or run the shell:
 
 ```shell
 create-table.sh
+```
+### Run docker compose
+```bash
+docker compose up -d
 ```
 
 ### DynamoDB admin

@@ -6,6 +6,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
+import java.time.Instant;
 import java.util.Set;
 
 @Introspected
@@ -28,6 +29,10 @@ public class RedditPost {
     private Boolean isOriginalContent;
     private String linkFlairText;
     private Set<String> keywords;
+
+    private String summary;
+    private String sentiment;
+    private Instant processedAt;
 
     /**
      * Needed with @DynamoDbBean
@@ -102,4 +107,28 @@ public class RedditPost {
 
     public Set<String> getKeywords() { return keywords; }
     public void setKeywords(Set<String> keywords) { this.keywords = keywords; }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+
+    public String getSentiment() {
+        return sentiment;
+    }
+
+    public void setSentiment(String sentiment) {
+        this.sentiment = sentiment;
+    }
+
+    public Instant getProcessedAt() {
+        return processedAt;
+    }
+
+    public void setProcessedAt(Instant processedAt) {
+        this.processedAt = processedAt;
+    }
 }

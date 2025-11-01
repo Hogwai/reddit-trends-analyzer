@@ -10,6 +10,8 @@ public record SummarizedPost(
         Long createdUtc,
         String author,
         String title,
+        String summary,
+        String sentiment,
         String url,
         Integer score,
         Integer numComments,

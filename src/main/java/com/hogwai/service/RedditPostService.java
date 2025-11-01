@@ -1,8 +1,10 @@
 package com.hogwai.service;
 
+import com.hogwai.ai.AIAnalyzer;
 import com.hogwai.client.RedditClient;
 import com.hogwai.enums.Timeframe;
 import com.hogwai.model.RedditPost;
+import com.hogwai.model.SummarizedPost;
 import com.hogwai.model.raw.RedditChild;
 import com.hogwai.model.raw.RedditListing;
 import com.hogwai.model.raw.RedditPostData;
@@ -29,13 +31,16 @@ public class RedditPostService {
     private final RedditClient redditClient;
     private final RedditPostRepository redditPostRepository;
     private final TextProcessingUtil textProcessingUtil;
+    private final AIAnalyzer aiAnalyzer;
 
     public RedditPostService(RedditClient redditClient,
                              RedditPostRepository redditPostRepository,
-                             TextProcessingUtil textProcessingUtil) {
+                             TextProcessingUtil textProcessingUtil,
+                             AIAnalyzer aiAnalyzer) {
         this.redditClient = redditClient;
         this.redditPostRepository = redditPostRepository;
         this.textProcessingUtil = textProcessingUtil;
+        this.aiAnalyzer = aiAnalyzer;
     }
 
     /**
@@ -46,23 +51,30 @@ public class RedditPostService {
      * @param limit       max number of posts
      * @return posts fetched
      */
-    public List<RedditPost> fetchAndSavePosts(String subreddit, String temporality, int limit) {
+    public List<SummarizedPost> fetchAndSavePosts(String subreddit, String temporality, int limit) {
         LOG.info("Getting {} posts of r/{}", limit, subreddit);
 
         RedditListing listing = redditClient.fetchListing(subreddit, temporality, limit);
-
         List<RedditPost> posts = listing.data()
                                         .children()
                                         .stream()
                                         .map(RedditChild::data)
                                         .filter(Objects::nonNull)
                                         .map(this::mapToRedditPost)
+                                        .map(aiAnalyzer::enrich)
                                         .toList();
-
         redditPostRepository.saveAll(posts);
         LOG.info("Saved successfully {} posts", posts.size());
+        return posts.stream()
+                    .map(this::mapToSummarizedPost)
+                    .toList();
+    }
 
-        return posts;
+    private SummarizedPost mapToSummarizedPost(RedditPost rp) {
+        return new SummarizedPost(rp.getId(), rp.getCreatedUtc(), rp.getAuthor(),
+                rp.getTitle(), rp.getSummary(), rp.getSentiment(), rp.getUrl(), rp.getScore(),
+                rp.getNumComments(), rp.getUpvoteRatio(), rp.getIsOriginalContent(),
+                rp.getLinkFlairText());
     }
 
     /**
@@ -88,6 +100,7 @@ public class RedditPostService {
                        .toEpochMilli() :
                 redditPostData.created_utc()
                               .longValue();
+
         return new RedditPost(
                 redditPostData.id(),
                 redditPostData.subreddit(),
