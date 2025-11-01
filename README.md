@@ -59,6 +59,8 @@ Or run the shell:
 create-table.sh
 ```
 ### Run docker compose
+
+ollama is **BEEFY** (>5GB). Make sure you have enough room for it
 ```bash
 docker compose up -d
 ```
