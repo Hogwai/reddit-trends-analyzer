@@ -43,8 +43,8 @@ services:
       /bin/sh -c "
       ollama serve &
       sleep 5 &&
-      ollama pull gemma3:270m &&
-      echo 'gemma3:270m ready' &&
+      ollama pull gemma3:1b &&
+      echo 'gemma3:1b ready' &&
       wait
       "
 
